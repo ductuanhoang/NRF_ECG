@@ -23,8 +23,12 @@
 /***********************************************************************************************************************
 * Macro definitions
 ***********************************************************************************************************************/
-#define USER_RX_PIN_NUMBER  6
-#define USER_TX_PIN_NUMBER  5
+#define USER_RX_PIN_NUMBER 6
+#define USER_TX_PIN_NUMBER 5
+
+#define USER_TX_BUF_SIZE 256 /**< UART TX buffer size. */
+#define USER_RX_BUF_SIZE 256
+
 /***********************************************************************************************************************
 * Typedef definitions
 ***********************************************************************************************************************/
@@ -32,7 +36,7 @@
 /***********************************************************************************************************************
 * Private global variables and functions
 ***********************************************************************************************************************/
-
+static void user_uart_event_handle(app_uart_evt_t *p_event);
 /***********************************************************************************************************************
 * Exported global variables and functions (to be accessed by other files)
 ***********************************************************************************************************************/
@@ -49,44 +53,46 @@
 ***********************************************************************************************************************/
 bool user_uart_init(void)
 {
-    //uint32_t err_code;
-    //app_uart_comm_params_t const comm_params = {
-    //    .rx_pin_no = USER_RX_PIN_NUMBER,
-    //    .tx_pin_no = USER_TX_PIN_NUMBER,
-    //    .flow_control = APP_UART_FLOW_CONTROL_DISABLED,
-    //    .use_parity = false,
-    //    .baud_rate = NRF_UARTE_BAUDRATE_115200};
+    uint32_t err_code;
+    app_uart_comm_params_t const comm_params = {
+        .rx_pin_no = USER_RX_PIN_NUMBER,
+        .tx_pin_no = USER_TX_PIN_NUMBER,
+        .flow_control = APP_UART_FLOW_CONTROL_DISABLED,
+        .use_parity = false,
+        .baud_rate = NRF_UART_BAUDRATE_115200};
 
-    //APP_UART_FIFO_INIT(&comm_params,
-    //                   UART_RX_BUF_SIZE,
-    //                   UART_TX_BUF_SIZE,
-    //                   uart_event_handle,
-    //                   APP_IRQ_PRIORITY_LOWEST,
-    //                   err_code);
-    //APP_ERROR_CHECK(err_code);
-    //return (err_code == NRF_SUCCESS) ? 1 : 0;
+    APP_UART_FIFO_INIT(&comm_params,
+                       USER_RX_BUF_SIZE,
+                       USER_TX_BUF_SIZE,
+                       user_uart_event_handle,
+                       APP_IRQ_PRIORITY_LOWEST,
+                       err_code);
+    APP_ERROR_CHECK(err_code);
+    return (err_code == NRF_SUCCESS) ? 1 : 0;
 }
 
-/**
- * @brief user_uart_send send data via UART interface
- * 
- * @param data 
- * @param len 
- */
-void user_uart_send(uint8_t *data, uint16_t len)
-{
-
-}
 /***********************************************************************************************************************
 * Static Functions
 ***********************************************************************************************************************/
-/***********************************************************************************************************************
-* Function Name:
-* Description  :
-* Arguments    : none
-* Return Value : none
-***********************************************************************************************************************/
+static void user_uart_event_handle(app_uart_evt_t *p_event)
+{
+    switch (p_event->evt_type)
+    {
+    case APP_UART_DATA_READY:
+        break;
 
+    case APP_UART_COMMUNICATION_ERROR:
+        APP_ERROR_HANDLER(p_event->data.error_communication);
+        break;
+
+    case APP_UART_FIFO_ERROR:
+        APP_ERROR_HANDLER(p_event->data.error_code);
+        break;
+
+    default:
+        break;
+    }
+}
 /***********************************************************************************************************************
 * End of file
 ***********************************************************************************************************************/

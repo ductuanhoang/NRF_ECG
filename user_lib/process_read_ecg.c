@@ -1,7 +1,7 @@
 
 
 /**
- * @file timer_service.c
+ * @file process_read_ecg.c
  * @author your name (you@domain.com)
  * @brief 
  * @version 0.1
@@ -18,26 +18,55 @@
 * Includes <System Includes>
 ***********************************************************************************************************************/
 #include "common.h"
+#include "process_read_ecg.h"
 #include "timer_service.h"
-#include "app_timer.h"
+#include "user_spi.h"
+#include "user_uart.h"
+#include "nrf_delay.h"
 /***********************************************************************************************************************
 * Macro definitions
 ***********************************************************************************************************************/
-#define TIMER_SERVICE_INTERVAL_MS 1000
-#define USER_TIMER_MEAS_INTERVAL APP_TIMER_TICKS(TIMER_SERVICE_INTERVAL_MS)
-APP_TIMER_DEF(m_user_timer_id);
+/**
+ * ADS129X_INTF_RET_TYPE is the read/write interface return type which can be overwritten by the build system.
+ * The default is set to int8_t.
+ */
+#ifndef ADS129X_INTF_RET_TYPE
+#define ADS129X_INTF_RET_TYPE bool
+#endif
+
 /***********************************************************************************************************************
 * Typedef definitions
 ***********************************************************************************************************************/
+typedef ADS129X_INTF_RET_TYPE (*ads129x_read_fptr_t)(uint8_t reg_addr, uint8_t *reg_data, uint32_t length,
+                                                    void *intf_ptr, uint32_t delay);
 
+typedef ADS129X_INTF_RET_TYPE (*ads129x_write_fptr_t)(uint8_t *cmd, uint16_t length);
+
+typedef void (*ads129x_delay_ms_fptr_t)(uint32_t period);
+
+typedef struct
+{
+    /*! Read function pointer */
+    ads129x_read_fptr_t read;
+
+    /*! Write function pointer */
+    ads129x_write_fptr_t write;
+
+    /*! Delay function pointer */
+    ads129x_delay_ms_fptr_t delay_us;
+} ads1292_sensor_t;
+
+ads1292_sensor_t ads1292_sensor;
 /***********************************************************************************************************************
 * Private global variables and functions
 ***********************************************************************************************************************/
-//unused functions
-static void user_timer_timeout_handler(void *p_context);
+/**
+ * @brief process_read_ecg read and print signal ecg
+ * call in loop or event timeout of timer
+ * 
+ */
+static void process_read_ecg(void *p);
 
-
-timer_callback timeout_handler;
 /***********************************************************************************************************************
 * Exported global variables and functions (to be accessed by other files)
 ***********************************************************************************************************************/
@@ -46,39 +75,30 @@ timer_callback timeout_handler;
 * Imported global variables and functions (from other files)
 ***********************************************************************************************************************/
 
-/***********************************************************************************************************************
-* Function Name:
-* Description  :
-* Arguments    : none
-* Return Value : none
-***********************************************************************************************************************/
-void user_timer_service_init(void)
+void process_read_ecg_init(void)
 {
-    ret_code_t err_code;
-    err_code = app_timer_create(&m_user_timer_id,
-                                APP_TIMER_MODE_REPEATED,
-                                timeout_handler);
-    // Start battery timer
-    err_code = app_timer_start(m_user_timer_id, USER_TIMER_MEAS_INTERVAL, NULL);
+    user_uart_init();
+    user_timer_callback(process_read_ecg);
+    user_timer_service_init();
+
+    // ads1292_sensor.read = user_spi_recive
+    ads1292_sensor.write = user_spi_send_data;
+    ads1292_sensor.delay_us = nrf_delay_ms;
 }
 
 /**
- * @brief call back function regered timer timer out
+ * @brief process_read_ecg read and print signal ecg
+ * call in loop or event timeout of timer
  * 
- * @param cb 
  */
-void user_timer_callback(timer_callback cb)
+static void process_read_ecg(void *p)
 {
-    timeout_handler = cb;
+    USER_UART_PRINT("tesst\r\n");
 }
 /***********************************************************************************************************************
 * static functions
 ***********************************************************************************************************************/
-// unused functions
-static void user_timer_timeout_handler(void *p_context)
-{
-    NRF_LOG_DEBUG("user_timer_timeout_handler call");
-}
+
 /***********************************************************************************************************************
 * End of file
 ***********************************************************************************************************************/

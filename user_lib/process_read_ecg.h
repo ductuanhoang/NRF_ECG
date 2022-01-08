@@ -1,40 +1,24 @@
-/**
- * @file user_uart.h
- * @author tuanhd2 (you@domain.com)
- * @brief 
- * @version 0.1
- * @date 2022-01-06
- * 
- * @copyright Copyright (c) 2022
- * 
- */
-#ifndef USER_UART_H
-#define USER_UART_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+#ifndef _PROCESS_READ_ECG_H_
+#define _PROCESS_READ_ECG_H_
 /****************************************************************************/
 /***        Include files                                                 ***/
 /****************************************************************************/
-#include <stdbool.h>
+#include "common.h"
+
 /****************************************************************************/
 /***        Macro Definitions                                             ***/
 /****************************************************************************/
-#define USER_UART_PRINT printf
+
+
 /****************************************************************************/
 /***        Type Definitions                                              ***/
 /****************************************************************************/
 
+
 /****************************************************************************/
 /***         Exported global functions                                     ***/
 /****************************************************************************/
-
-bool user_uart_init(void);
-#ifdef __cplusplus
-}
-#endif
+void process_read_ecg_init(void);
 
 
-#endif //USER_UART_H
+#endif //_PROCESS_READ_ECG_H_
