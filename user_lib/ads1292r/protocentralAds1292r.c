@@ -16,10 +16,7 @@
 //   Downloaded from Processing IDE Sketch->Import Library->Add Library->G4P Install
 //
 /////////////////////////////////////////////////////////////////////////////////////////
-#include "Arduino.h"
 #include "protocentralAds1292r.h"
-#include <SPI.h>
-
 
 static void ads1292RegWrite(unsigned char READ_WRITE_ADDRESS, unsigned char DATA, const int chipSelect);
 static void ads1292SPICommandData(unsigned char dataIn, const int chipSelect);
@@ -33,7 +30,7 @@ static void ads1292StopReadDataContinuous(const int chipSelect);
 static char *ads1292ReadData(const int chipSelect);
 
 int j, i;
-volatile byte SPI_RX_Buff[15];
+volatile uint8_t SPI_RX_Buff[15];
 volatile static int SPI_RX_Buff_Count = 0;
 volatile char *SPI_RX_Buff_Ptr;
 volatile bool ads1292dataReceived = false;
@@ -47,7 +44,7 @@ long statusByte = 0;
 
 uint8_t LeadStatus = 0;
 
-boolean getAds1292EcgAndRespirationSamples(const int dataReady, const int chipSelect, ads1292OutputValues *ecgRespirationValues)
+bool getAds1292EcgAndRespirationSamples(const int dataReady, const int chipSelect, ads1292OutputValues *ecgRespirationValues)
 {
 
   if ((digitalRead(dataReady)) == LOW) // Sampling rate is set to 125SPS ,DRDY ticks for every 8ms
@@ -200,7 +197,7 @@ void ads1292StopReadDataContinuous(const int chipSelect)
 
 void ads1292SPICommandData(unsigned char dataIn, const int chipSelect)
 {
-  byte data[1];
+  uint8_t data[1];
   //data[0] = dataIn;
   digitalWrite(chipSelect, LOW);
   delay(2);
@@ -250,7 +247,7 @@ void ads1292RegWrite(unsigned char READ_WRITE_ADDRESS, unsigned char DATA, const
     break;
   }
   // now combine the register address and the command into one byte:
-  byte dataToSend = READ_WRITE_ADDRESS | WREG;
+  uint8_t dataToSend = READ_WRITE_ADDRESS | WREG;
   digitalWrite(chipSelect, LOW);
   delay(2);
   digitalWrite(chipSelect, HIGH);

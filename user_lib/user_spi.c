@@ -50,6 +50,8 @@ static volatile bool spi_xfer_done;                                            /
 
 void spi_event_handler(nrf_drv_spi_evt_t const *p_event,
                        void *p_context);
+
+static volatile bool m_transfer_completed = true; /**< A flag to inform about completed transfer. */
 /***********************************************************************************************************************
 * Exported global variables and functions (to be accessed by other files)
 ***********************************************************************************************************************/
@@ -114,6 +116,32 @@ bool user_spi_send_data(uint8_t *cmd, uint16_t length)
     return true;
 }
 
+
+/**@brief Functions prepares buffers and starts data transfer.
+ *
+ * @param[in] p_tx_data     A pointer to a buffer TX.
+ * @param[in] p_rx_data     A pointer to a buffer RX.
+ * @param[in] len           A length of the data buffers.
+ */
+void spi_send_recv(uint8_t * const p_tx_data,
+                   uint8_t * const p_rx_data,
+                   const uint16_t len)
+{
+    m_transfer_completed = false;
+    // Start transfer.
+    nrf_drv_spi_transfer(&m_spi_master,
+                         p_tx_data, len, p_rx_data, len);
+    while (!m_transfer_completed);
+}
+
+
+uint8_t* spi_transfer(uint8_t * message, const uint16_t len)
+{
+    memcpy((void*)m_tx_data, (void*)message, len);
+    spi_send_recv(m_tx_data, m_rx_data, len);
+    return m_rx_data;
+}
+
 /**
  * @brief SPI user event handler.
  * @param event
@@ -128,6 +156,18 @@ void spi_event_handler(nrf_drv_spi_evt_t const *p_event,
         NRF_LOG_INFO(" Received:");
         NRF_LOG_HEXDUMP_INFO(m_rx_buf, strlen((const char *)m_rx_buf));
     }
+
+    switch (event) {
+    case NRF_DRV_SPI_EVENT_DONE:
+        // Inform application that transfer is completed.
+        m_transfer_completed = true;
+        break;
+
+    default:
+        // No implementation needed.
+        break;
+    }
+
 }
 
 /***********************************************************************************************************************

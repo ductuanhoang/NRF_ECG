@@ -18,7 +18,10 @@
 /////////////////////////////////////////////////////////////////////////////////////////
 #ifndef ads1292r_h
 #define ads1292r_h
-#include "common.h"
+
+#include <string.h>
+#include <stdbool.h>
+#include <cstdint>
 
 #define CONFIG_SPI_MASTER_DUMMY 0xFF
 
@@ -58,12 +61,12 @@
 typedef struct Record
 {
   volatile signed long sDaqVals[8];
-  boolean leadoffDetected = true;
+  bool leadoffDetected; // default = true
   signed long sresultTempResp;
 } ads1292OutputValues;
 
-boolean getAds1292EcgAndRespirationSamples(const int dataReady, const int chipSelect, ads1292OutputValues *ecgRespirationValues);
+bool getAds1292EcgAndRespirationSamples(const int dataReady, const int chipSelect, ads1292OutputValues *ecgRespirationValues);
 void ads1292Init(const int chipSelect, const int pwdnPin, const int startPin);
 void ads1292Reset(const int pwdnPin);
 
-#endif
+#endif //ads1292r_h
